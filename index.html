@@ -1,0 +1,195 @@
+<!DOCTYPE html>
+<html>
+  <head>
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+    <style>
+
+    .card {
+       border: 5px solid #522438;
+       background-color: #c5f6ff;
+       width: 530px;
+       margin: auto;
+       padding-bottom: 40px ;
+       border-radius: 50px;
+       border-bottom-right-radius: 132px;
+       box-shadow: 0 0 20px rgba(255, 255, 255, 0.5);
+       box-shadow: inset 20px -6px 15px rgba(253, 253, 253, 0.7), inset -10px 0 rgba(0, 0, 0, 0.2);
+        }
+
+        
+    img {
+     border: 30px solid #522438;
+     box-shadow: 0 3px 4px hsl(0, 0%, 0%);
+     border-radius: 25px;
+    }
+    
+    .arrows {
+      font-size:40px;
+      color:#fff;
+
+    }
+    td.button {
+      background-color: #846662;
+      border: 4px solid #522438;
+      border-radius: 5px;
+      box-shadow: 0 3px 4px hsl(0, 1%, 23%);
+      cursor: pointer;
+      font-size: 18px;
+      color: #fff;
+      padding: 10px 20px;
+      transition: 0.3s;
+    }
+    td.button:active {
+      transform: translate(5px,5px);
+      box-shadow: none; 
+    }
+
+    .noselect {
+      -webkit-touch-callout: none; /* iOS Safari */
+        -webkit-user-select: none; /* Safari */
+         -khtml-user-select: none; /* Konqueror HTML */
+           -moz-user-select: none; /* Firefox */
+            -ms-user-select: none; /* Internet Explorer/Edge */
+                user-select: none; /* Non-prefixed version, currently
+                                      supported by Chrome and Opera */
+    }
+
+    .slidecontainer {
+      width: 100%;
+    }
+
+    .slider {
+      width: 100%;
+      height: 15px;
+      border-radius: 5px;
+      background: #846662;
+      outline: none;
+      opacity: 0.7;
+      transition:  0.2s;
+      -webkit-appearance: none;      
+      -webkit-transition: .2s;
+    }
+
+    .slider:hover {
+      opacity: 1;
+    }
+  
+    .slider::-webkit-slider-thumb {
+      -webkit-appearance: none;
+      appearance: none;
+      width: 25px;
+      height: 25px;
+      border-radius: 50%;
+      background: #fc6963;
+      cursor: pointer;
+    }
+
+    .slider::-moz-range-thumb {
+      width: 25px;
+      height: 25px;
+      border-radius: 50%;
+      background: #fad1d9;
+      cursor: pointer;
+    }
+
+    </style>
+  
+  </head>
+  <body class="noselect" align="center" style="background-color:#fad1d9">
+    
+     <div class="card">
+         <h2 style="color: #522438;text-align:center;">&#128247; CamBot &#128663; </h2>
+    
+    <table id="mainTable" style="width:400px;margin:auto;table-layout:fixed" CELLSPACING=10>
+      <tr>
+        <img id="cameraImage" src="" style="width:400px;height:250px"></td>
+      </tr> 
+      <tr>
+        <td></td>
+        <td class="button" ontouchstart='sendButtonInput("MoveCar","1")' ontouchend='sendButtonInput("MoveCar","0")'><span class="arrows" >&#8679;</span></td>
+        <td></td>
+      </tr>
+      <tr>
+        <td class="button" ontouchstart='sendButtonInput("MoveCar","3")' ontouchend='sendButtonInput("MoveCar","0")'><span class="arrows" >&#8678;</span></td>
+        <td class="button"></td>    
+        <td class="button" ontouchstart='sendButtonInput("MoveCar","4")' ontouchend='sendButtonInput("MoveCar","0")'><span class="arrows" >&#8680;</span></td>
+      </tr>
+      <tr>
+        <td></td>
+        <td class="button" ontouchstart='sendButtonInput("MoveCar","2")' ontouchend='sendButtonInput("MoveCar","0")'><span class="arrows" >&#8681;</span></td>
+        <td></td>
+      </tr>
+      <tr/><tr/>
+      <tr>
+        <td style="text-align:left; color: #522438 "><b>Speed &#9889; :</b></td>
+        <td colspan=2>
+         <div class="slidecontainer">
+            <input type="range" min="0" max="255" value="150" class="slider" id="Speed" oninput='sendButtonInput("Speed",value)'>
+          </div>
+        </td>
+      </tr>        
+      <tr>
+        <td style="text-align:left; color: #522438"><b>Light &#128161; :</b></td>
+        <td colspan=2>
+          <div class="slidecontainer">
+            <input type="range" min="0" max="255" value="0" class="slider" id="Light" oninput='sendButtonInput("Light",value)'>
+          </div>
+        </td>   
+      </tr>
+    </table>
+
+     </div>
+   
+  
+    <script>
+      var webSocketCameraUrl = "ws:\/\/" + window.location.hostname + "/Camera";
+      var webSocketCarInputUrl = "ws:\/\/" + window.location.hostname + "/CarInput";      
+      var websocketCamera;
+      var websocketCarInput;
+      
+      function initCameraWebSocket() 
+      {
+        websocketCamera = new WebSocket(webSocketCameraUrl);
+        websocketCamera.binaryType = 'blob';
+        websocketCamera.onopen    = function(event){};
+        websocketCamera.onclose   = function(event){setTimeout(initCameraWebSocket, 2000);};
+        websocketCamera.onmessage = function(event)
+        {
+          var imageId = document.getElementById("cameraImage");
+          imageId.src = URL.createObjectURL(event.data);
+        };
+      }
+      
+      function initCarInputWebSocket() 
+      {
+        websocketCarInput = new WebSocket(webSocketCarInputUrl);
+        websocketCarInput.onopen    = function(event)
+        {
+          var speedButton = document.getElementById("Speed");
+          sendButtonInput("Speed", speedButton.value);
+          var lightButton = document.getElementById("Light");
+          sendButtonInput("Light", lightButton.value);
+        };
+        websocketCarInput.onclose   = function(event){setTimeout(initCarInputWebSocket, 2000);};
+        websocketCarInput.onmessage = function(event){};        
+      }
+      
+      function initWebSocket() 
+      {
+        initCameraWebSocket ();
+        initCarInputWebSocket();
+      }
+
+      function sendButtonInput(key, value) 
+      {
+        var data = key + "," + value;
+        websocketCarInput.send(data);
+      }
+    
+      window.onload = initWebSocket;
+      document.getElementById("mainTable").addEventListener("touchend", function(event){
+        event.preventDefault()
+      });      
+    </script>
+  </body>    
+</html>
